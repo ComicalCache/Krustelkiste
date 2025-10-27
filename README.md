@@ -10,6 +10,7 @@ The application is supposed to work similar to [BusyBox](https://busybox.net), a
 - basename
 - cat
 - cksum
+- cmp
 
 ## Sources
 - https://standards.ieee.org/ieee/1003.1/7101/
