@@ -1,6 +1,7 @@
 mod basename;
+mod cat;
 
-use crate::basename::basename;
+use crate::{basename::basename, cat::cat};
 use std::process::exit;
 
 macro_rules! setup {
@@ -32,7 +33,7 @@ macro_rules! setup {
         };
 
         // List of available commands.
-        let cmds = [$(stringify!($cmd))+];
+        let cmds = [$(stringify!($cmd)),+];
 
         // If the callee is not a valid command, get the command from the next argument.
         if !cmds.contains(&cmd.as_str()) {
@@ -62,5 +63,5 @@ macro_rules! setup {
 }
 
 fn main() {
-    setup!(basename)
+    setup!(basename, cat)
 }

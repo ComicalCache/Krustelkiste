@@ -1,0 +1,96 @@
+use clap::Parser;
+use std::{
+    env::ArgsOs,
+    fs::File,
+    io::{BufReader, BufWriter, Error, Read, Write},
+    iter::Peekable,
+};
+
+#[derive(Parser)]
+#[command(name = "cat")]
+#[command(version = "1.0.0")]
+#[command(about = "concatenate and print files")]
+#[clap(disable_help_flag = true)]
+#[clap(disable_version_flag = true)]
+struct Cat {
+    /// Write bytes from the input file to the standard output without delay as each is
+    /// read.
+    #[arg(short)]
+    unbuffered: bool,
+    /// A pathname of an input file. If no file operands are specified, the standard input
+    /// shall be used. If a file is '−', the cat utility shall read from the standard input at
+    /// that point in the sequence. The cat utility shall not close and reopen standard input
+    /// when it is referenced in this way, but shall accept multiple occurrences of '−' as a
+    /// file operand.
+    files: Vec<String>,
+
+    /// Print help.
+    #[arg(long, action = clap::ArgAction::HelpLong)]
+    help: Option<bool>,
+    /// Print version.
+    #[arg(long, action = clap::ArgAction::Version)]
+    version: Option<bool>,
+}
+
+/// cat - concatenate and print files.
+pub fn cat(args: Peekable<ArgsOs>) -> i32 {
+    let Cat {
+        unbuffered, files, ..
+    } = match Cat::try_parse_from(args) {
+        Ok(cat) => cat,
+        Err(err) => {
+            eprint!("{err}");
+            return 1;
+        }
+    };
+
+    if unbuffered {
+        if let Err(err) = unbuffered_cat(files) {
+            eprintln!("{err}");
+            return 1;
+        }
+    } else if let Err(err) = buffered_cat(files) {
+        eprintln!("{err}");
+        return 1;
+    }
+
+    0
+}
+
+fn unbuffered_cat(files: Vec<String>) -> Result<(), Error> {
+    let stdin = std::io::stdin();
+    let mut stdout = std::io::stdout();
+
+    // FIXME: writing byte-by-byte with flushes feels wrong, unclear if this is the expected behaviour by the standard.
+    for file in files {
+        if file == "-" {
+            // FIXME: unclear if reading bytes makes any sense since stdin is line-buffered.
+            for byte in stdin.lock().bytes() {
+                stdout.write_all(&[byte?])?;
+                stdout.flush()?;
+            }
+        } else {
+            for byte in BufReader::new(File::open(file)?).bytes() {
+                stdout.write_all(&[byte?])?;
+                stdout.flush()?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn buffered_cat(files: Vec<String>) -> Result<(), Error> {
+    let mut stdin = std::io::stdin().lock();
+    let mut stdout = BufWriter::new(std::io::stdout().lock());
+
+    for file in files {
+        if file == "-" {
+            std::io::copy(&mut stdin, &mut stdout)?;
+        } else {
+            std::io::copy(&mut BufReader::new(File::open(file)?), &mut stdout)?;
+        }
+    }
+
+    Ok(())
+}

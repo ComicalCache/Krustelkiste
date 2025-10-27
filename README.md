@@ -4,10 +4,11 @@ A (partial) implementation of the POSIX Base Specification, Issue 7, utilities. 
 
 The application is supposed to work similar to [BusyBox](https://busybox.net), as that it is a single application binary that can invoke different utilities by either symlinking it as the specified name or calling the binary directly with the utility as first argument.
 
-> The name "Krustelkiste" is a German noun describing an unorganized box with all kinds tools and items.
+> The word "Krustelkiste" is a German noun describing an unorganized box with all kinds of tools and items.
 
 ## Currently implemented
 - basename
+- cat
 
 ## Sources
 - https://standards.ieee.org/ieee/1003.1/7101/

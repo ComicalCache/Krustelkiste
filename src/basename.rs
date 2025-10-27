@@ -5,17 +5,26 @@ use std::{env::ArgsOs, iter::Peekable};
 #[command(name = "basename")]
 #[command(version = "1.0.0")]
 #[command(about = "return non-directory portion of pathname")]
+#[clap(disable_help_flag = true)]
+#[clap(disable_version_flag = true)]
 struct Basename {
-    /// String containing a path.
+    /// A string.
     string: String,
-    /// Optional suffix to strip from the base name.
+    /// A string.
     suffix: Option<String>,
+
+    /// Print help.
+    #[arg(long, action = clap::ArgAction::HelpLong)]
+    help: Option<bool>,
+    /// Print version.
+    #[arg(long, action = clap::ArgAction::Version)]
+    version: Option<bool>,
 }
 
 /// basename - return non-directory portion of pathname.
 pub fn basename(args: Peekable<ArgsOs>) -> i32 {
-    let (string, suffix) = match Basename::try_parse_from(args) {
-        Ok(Basename { string, suffix }) => (string, suffix),
+    let Basename { string, suffix, .. } = match Basename::try_parse_from(args) {
+        Ok(basename) => basename,
         Err(err) => {
             eprint!("{err}");
             return 1;
@@ -34,10 +43,7 @@ pub fn basename(args: Peekable<ArgsOs>) -> i32 {
         return 0;
     }
 
-    // Remove trailing slashes.
     let mut string = string.trim_end_matches('/');
-
-    // Remove prefix.
     if let Some(idx) = string.rfind('/') {
         debug_assert!(idx < string.len());
         string = &string[idx + 1..];
@@ -51,7 +57,6 @@ pub fn basename(args: Peekable<ArgsOs>) -> i32 {
         string = &string[..string.len() - suffix.len()];
     }
 
-    // Write the result with newline to stdout.
     println!("{string}");
     0
 }
