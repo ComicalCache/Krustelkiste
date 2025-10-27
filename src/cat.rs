@@ -61,10 +61,16 @@ fn unbuffered_cat(files: Vec<String>) -> Result<(), Error> {
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
 
-    // FIXME: writing byte-by-byte with flushes feels wrong, unclear if this is the expected behaviour by the standard.
+    // Use stdin if no files were supplied.
+    if files.is_empty() {
+        for byte in stdin.lock().bytes() {
+            stdout.write_all(&[byte?])?;
+            stdout.flush()?;
+        }
+    }
+
     for file in files {
         if file == "-" {
-            // FIXME: unclear if reading bytes makes any sense since stdin is line-buffered.
             for byte in stdin.lock().bytes() {
                 stdout.write_all(&[byte?])?;
                 stdout.flush()?;
@@ -83,6 +89,12 @@ fn unbuffered_cat(files: Vec<String>) -> Result<(), Error> {
 fn buffered_cat(files: Vec<String>) -> Result<(), Error> {
     let mut stdin = std::io::stdin().lock();
     let mut stdout = BufWriter::new(std::io::stdout().lock());
+
+    // Use stdin if no files were supplied.
+    if files.is_empty() {
+        std::io::copy(&mut stdin, &mut stdout)?;
+        return Ok(());
+    }
 
     for file in files {
         if file == "-" {
