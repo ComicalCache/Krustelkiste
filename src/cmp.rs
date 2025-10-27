@@ -65,14 +65,14 @@ macro_rules! cmp {
             }
         }
 
-        // Print EOF message when files are not identical in length.
+        // Print EOF message when files are not identical in length. Add the number of bytes of the shorter files.
         if count1 != count2 && ($list || ret == 0) {
             #[allow(clippy::redundant_else)]
             if count1 < count2 {
-                eprintln!("cmp: EOF on {}", $path1);
+                eprintln!("cmp: EOF on {} char {count1}", $path1);
                 return Ok(1);
             } else {
-                eprintln!("cmp: EOF on {}", $path2);
+                eprintln!("cmp: EOF on {} char {count2}", $path2);
                 return Ok(1);
             }
         }
@@ -83,7 +83,7 @@ macro_rules! cmp {
 
 #[derive(Parser)]
 #[command(name = "cmp")]
-#[command(version = "1.0.0")]
+#[command(version = "1.0.1")]
 #[command(about = "compare two files")]
 #[clap(disable_help_flag = true)]
 #[clap(disable_version_flag = true)]
@@ -94,9 +94,9 @@ struct Cmp {
     /// Write nothing for differing files; return exit status only.
     #[arg(short)]
     short: bool,
-    /// A pathname of the first file to be compared. if file1 is '-', the standard input shall be used.
+    /// A pathname of the first file to be compared. If file1 is '-', the standard input shall be used.
     file1: String,
-    /// A pathname of the second file to be compared. if file2 is '-', the standard input shall be used.
+    /// A pathname of the second file to be compared. If file2 is '-', the standard input shall be used.
     file2: String,
 
     /// Print help.
