@@ -1,7 +1,8 @@
 mod basename;
 mod cat;
+mod cksum;
 
-use crate::{basename::basename, cat::cat};
+use crate::{basename::basename, cat::cat, cksum::cksum};
 use std::process::exit;
 
 macro_rules! setup {
@@ -63,5 +64,5 @@ macro_rules! setup {
 }
 
 fn main() {
-    setup!(basename, cat)
+    setup!(basename, cat, cksum)
 }

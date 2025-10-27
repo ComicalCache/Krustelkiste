@@ -9,6 +9,7 @@ The application is supposed to work similar to [BusyBox](https://busybox.net), a
 ## Currently implemented
 - basename
 - cat
+- cksum
 
 ## Sources
 - https://standards.ieee.org/ieee/1003.1/7101/
