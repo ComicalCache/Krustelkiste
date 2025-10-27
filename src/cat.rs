@@ -8,7 +8,7 @@ use std::{
 
 #[derive(Parser)]
 #[command(name = "cat")]
-#[command(version = "1.0.2")]
+#[command(version = "1.0.3")]
 #[command(about = "concatenate and print files")]
 #[clap(disable_help_flag = true)]
 #[clap(disable_version_flag = true)]
@@ -62,7 +62,7 @@ fn unbuffered_cat(files: Vec<String>) -> Result<(), Error> {
 
     // Use stdin if no files were supplied.
     if files.is_empty() {
-        for byte in std::io::stdin().bytes() {
+        for byte in BufReader::new(std::io::stdin()).bytes() {
             stdout.write_all(&[byte?])?;
             stdout.flush()?;
         }
