@@ -8,7 +8,7 @@ use std::{
 
 #[derive(Parser)]
 #[command(name = "cksum")]
-#[command(version = "1.0.0")]
+#[command(version = "1.0.1")]
 #[command(about = "write file checksums and sizes")]
 #[clap(disable_help_flag = true)]
 #[clap(disable_version_flag = true)]
@@ -35,10 +35,9 @@ pub fn cksum(args: Peekable<ArgsOs>) -> i32 {
         }
     };
 
-    let stdin = std::io::stdin();
-
+    // Use stdin if no files were supplied.
     if files.is_empty() {
-        if let Err(err) = stdin_cksum(stdin.lock()) {
+        if let Err(err) = stdin_cksum(std::io::stdin().lock()) {
             eprintln!("{err}");
             return 1;
         }
@@ -46,9 +45,12 @@ pub fn cksum(args: Peekable<ArgsOs>) -> i32 {
         return 0;
     }
 
+    let mut stdin = None;
     for file in files {
+        // Use stdin if the file is '-'.
         if file == "-" {
-            if let Err(err) = stdin_cksum(stdin.lock()) {
+            // Only open stdin when needed, otherwise it is never opened.
+            if let Err(err) = stdin_cksum(stdin.get_or_insert(std::io::stdin()).lock()) {
                 eprintln!("{err}");
                 return 1;
             }

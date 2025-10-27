@@ -8,7 +8,7 @@ use std::{
 
 #[derive(Parser)]
 #[command(name = "cat")]
-#[command(version = "1.0.0")]
+#[command(version = "1.0.2")]
 #[command(about = "concatenate and print files")]
 #[clap(disable_help_flag = true)]
 #[clap(disable_version_flag = true)]
@@ -58,20 +58,24 @@ pub fn cat(args: Peekable<ArgsOs>) -> i32 {
 }
 
 fn unbuffered_cat(files: Vec<String>) -> Result<(), Error> {
-    let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
 
     // Use stdin if no files were supplied.
     if files.is_empty() {
-        for byte in stdin.lock().bytes() {
+        for byte in std::io::stdin().bytes() {
             stdout.write_all(&[byte?])?;
             stdout.flush()?;
         }
+
+        return Ok(());
     }
 
+    let mut stdin = None;
     for file in files {
+        // Use stdin if the file is '-'.
         if file == "-" {
-            for byte in stdin.lock().bytes() {
+            // Only open stdin when needed, otherwise it is never opened.
+            for byte in stdin.get_or_insert(std::io::stdin()).lock().bytes() {
                 stdout.write_all(&[byte?])?;
                 stdout.flush()?;
             }
@@ -87,18 +91,23 @@ fn unbuffered_cat(files: Vec<String>) -> Result<(), Error> {
 }
 
 fn buffered_cat(files: Vec<String>) -> Result<(), Error> {
-    let mut stdin = std::io::stdin().lock();
     let mut stdout = BufWriter::new(std::io::stdout().lock());
 
     // Use stdin if no files were supplied.
     if files.is_empty() {
-        std::io::copy(&mut stdin, &mut stdout)?;
+        std::io::copy(&mut std::io::stdin(), &mut stdout)?;
         return Ok(());
     }
 
+    let mut stdin = None;
     for file in files {
+        // Use stdin if the file is '-'.
         if file == "-" {
-            std::io::copy(&mut stdin, &mut stdout)?;
+            // Only open stdin when needed, otherwise it is never opened.
+            std::io::copy(
+                &mut stdin.get_or_insert(std::io::stdin()).lock(),
+                &mut stdout,
+            )?;
         } else {
             std::io::copy(&mut BufReader::new(File::open(file)?), &mut stdout)?;
         }
