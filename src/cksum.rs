@@ -50,7 +50,7 @@ pub fn cksum(args: Peekable<ArgsOs>) -> i32 {
         // Use stdin if the file is '-'.
         if file == "-" {
             // Only open stdin when needed, otherwise it is never opened.
-            if let Err(err) = stdin_cksum(stdin.get_or_insert(std::io::stdin()).lock()) {
+            if let Err(err) = stdin_cksum(stdin.get_or_insert_with(std::io::stdin).lock()) {
                 eprintln!("{err}");
                 return 1;
             }

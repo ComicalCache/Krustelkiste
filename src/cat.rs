@@ -75,7 +75,7 @@ fn unbuffered_cat(files: Vec<String>) -> Result<(), Error> {
         // Use stdin if the file is '-'.
         if file == "-" {
             // Only open stdin when needed, otherwise it is never opened.
-            for byte in stdin.get_or_insert(std::io::stdin()).lock().bytes() {
+            for byte in stdin.get_or_insert_with(std::io::stdin).lock().bytes() {
                 stdout.write_all(&[byte?])?;
                 stdout.flush()?;
             }
@@ -105,7 +105,7 @@ fn buffered_cat(files: Vec<String>) -> Result<(), Error> {
         if file == "-" {
             // Only open stdin when needed, otherwise it is never opened.
             std::io::copy(
-                &mut stdin.get_or_insert(std::io::stdin()).lock(),
+                &mut stdin.get_or_insert_with(std::io::stdin).lock(),
                 &mut stdout,
             )?;
         } else {
